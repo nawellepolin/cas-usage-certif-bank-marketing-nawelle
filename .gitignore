@@ -1,5 +1,45 @@
-.DS_Store
-.ipynb_checkpoints/
-.venv/
+# Python
 __pycache__/
+*.py[cod]
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+*.egg-info/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Données : le CSV source est versionné explicitement (livré par la formation,
+# nécessaire à la reproductibilité du repo) ; tout le reste sous data/ ne l'est pas.
+data/*
+!data/.gitkeep
+!data/bank-additional-full.csv
+
+# Modèles entraînés (Phase 5+) : trop lourds / non essentiels au repo
+models/*.joblib
+models/*.pkl
+!models/.gitkeep
+
+# MLflow (Phase 6bis+)
+mlruns/
+mlartifacts/
+
+# Env
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Documents d'examen originaux (sujet/mail/dataset brut fournis par la formation)
 consigne/
