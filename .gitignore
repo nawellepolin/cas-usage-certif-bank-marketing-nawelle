@@ -43,3 +43,6 @@ logs/
 
 # Documents d'examen originaux (sujet/mail/dataset brut fournis par la formation)
 consigne/
+
+# Notes personnelles (préparation PPT) — jamais poussées
+NOTES-PERSO.md
