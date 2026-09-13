@@ -23,6 +23,7 @@
 │   └── bank-additional-full.csv          # dataset fourni (41 188 lignes, séparateur `;`)
 ├── models/                               # modèles entraînés (gitignorés, Phase 5+)
 ├── cas_usage_certif/                     # canevas vierge + feuille de route — référence, non modifié
+├── datasheet.md                          # documentation du dataset (format Gebru et al.)
 ├── requirements.txt
 └── README.md
 ```
