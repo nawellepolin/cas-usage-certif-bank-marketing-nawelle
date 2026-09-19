@@ -24,6 +24,7 @@
 ├── models/                               # modèles entraînés (gitignorés, Phase 5+)
 ├── cas_usage_certif/                     # canevas vierge + feuille de route — référence, non modifié
 ├── datasheet.md                          # documentation du dataset (format Gebru et al.)
+├── experiments.md                        # traçabilité des runs (convention M1-B1/M4-B1)
 ├── requirements.txt
 └── README.md
 ```
