@@ -24,10 +24,13 @@ data/*
 !data/.gitkeep
 !data/bank-additional-full.csv
 
-# Modèles entraînés (Phase 5+) : trop lourds / non essentiels au repo
+# Modèles entraînés : gitignorés par défaut (trop lourds en général),
+# sauf le modèle retenu servi par l'API (petit, nécessaire à un clone propre
+# pour que les tests et la CI fonctionnent sans étape d'entraînement préalable).
 models/*.joblib
 models/*.pkl
 !models/.gitkeep
+!models/bank_marketing_scenario3.joblib
 
 # MLflow (Phase 6bis+)
 mlruns/
@@ -37,9 +40,9 @@ mlartifacts/
 .env
 .env.local
 
-# Logs
-*.log
-logs/
+# Logs : seul le dossier (via .gitkeep) est versionné, pas les fichiers de logs générés
+logs/*
+!logs/.gitkeep
 
 # Documents d'examen originaux (sujet/mail/dataset brut fournis par la formation)
 consigne/

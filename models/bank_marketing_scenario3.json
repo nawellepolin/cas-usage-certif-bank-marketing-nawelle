@@ -1,0 +1,60 @@
+{
+  "model_name": "bank_marketing_scenario3",
+  "model_version": "v1.0.0",
+  "scenario": "scenario_3",
+  "created_at": "2026-10-05T14:57:11.552432+00:00",
+  "sklearn_version": "1.9.1",
+  "python_version": "3.12.14",
+  "dataset_sha256": "74adfc578bf77a7ff4bb1ba4a9f8709d9e3c6907342959c2c8416847e0afb4d8",
+  "hyperparameters": {
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "random_state": 42
+  },
+  "feature_columns": {
+    "numeric": [
+      "campaign",
+      "pdays",
+      "previous",
+      "has_prior_contact",
+      "emp.var.rate",
+      "cons.price.idx",
+      "cons.conf.idx",
+      "euribor3m",
+      "nr.employed"
+    ],
+    "categorical": [
+      "contact",
+      "month",
+      "day_of_week",
+      "poutcome"
+    ]
+  },
+  "target": {
+    "column": "y",
+    "mapping": {
+      "no": 0,
+      "yes": 1
+    }
+  },
+  "metrics_test_internal": {
+    "f1_mean_cv": 0.4499,
+    "roc_auc_mean_cv": 0.7911
+  },
+  "metrics_holdout": {
+    "f1": 0.4641,
+    "recall": 0.6444,
+    "precision": 0.3626,
+    "roc_auc": 0.8014,
+    "confusion_matrix": [
+      [
+        6257,
+        1051
+      ],
+      [
+        330,
+        598
+      ]
+    ]
+  }
+}

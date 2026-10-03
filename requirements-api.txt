@@ -1,0 +1,9 @@
+# Dépendances runtime de l'API uniquement — image Docker légère.
+# (requirements.txt, à la racine, couvre en plus le notebook : jupyter, matplotlib, seaborn)
+fastapi
+uvicorn
+pydantic
+joblib
+loguru
+pandas
+scikit-learn

@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+.pytest_cache/
+.ipynb_checkpoints/
+notebooks/
+tests/
+data/
+consigne/
+cas_usage_certif/
+*.md
+.env
+logs/*.log
+logs/*.gz
+NOTES-PERSO.md
