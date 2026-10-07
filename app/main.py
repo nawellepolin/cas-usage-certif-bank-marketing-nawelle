@@ -13,10 +13,22 @@ from fastapi import FastAPI, HTTPException, Request, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from loguru import logger
+from prometheus_client import Counter
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.middleware import LoggingMiddleware
 from app.schemas import ContactAttempt, HealthResponse, Prediction
 from src.preprocess import add_engineered_features
+
+# --- Métrique métier : distribution des classes prédites (cf. M5-B1/M6-B1) --
+# Counter, pas Gauge : on compte des événements cumulés, Prometheus en déduit
+# un débit via rate(). Label à cardinalité FINIE uniquement ("yes"/"no") —
+# jamais un request_id ou une valeur continue en label (cf. piège M5-B1).
+PREDICTIONS = Counter(
+    "bank_marketing_predictions_total",
+    "Nombre de prédictions émises, par classe prédite",
+    ["predicted_class"],
+)
 
 # --- Loguru : logs d'accès uniquement, jamais de PII (cf. middleware) -------
 
@@ -77,6 +89,10 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+# Métriques HTTP automatiques (latence, RPS, codes retour) + endpoint /metrics.
+# Exclu du schéma OpenAPI pour ne pas polluer la doc Swagger (cf. M5-B1).
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 # Pré-câblage pour une authentification (M5+) — pas encore exigée en M1-B2/basique.
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -139,9 +155,12 @@ async def predict(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Échec de la prédiction : {exc}") from exc
 
+    predicted_class = "yes" if proba >= 0.5 else "no"
+    PREDICTIONS.labels(predicted_class=predicted_class).inc()
+
     return Prediction(
         probability=round(proba, 4),
-        prediction="yes" if proba >= 0.5 else "no",
+        prediction=predicted_class,
         model_version=app.state.metadata["model_version"],
         request_id=request_id,
     )

@@ -16,7 +16,9 @@
 │   ├── M9_nawelle_bank_marketing.ipynb   # notebook certif — le livrable principal
 │   └── journal-de-bord.ipynb             # démarche, choix, difficultés — séance par séance
 ├── src/
-│   └── preprocess.py                     # pipeline de préparation, 4 scénarios — réutilisé par le notebook ET l'API
+│   ├── preprocess.py                     # pipeline de préparation, 4 scénarios — réutilisé par le notebook ET l'API
+│   ├── drift_detection.py                # PSI/KS/Chi² (§9 — convention M6-B1)
+│   └── calibration.py                    # reliability diagram / ECE (§9)
 ├── app/                                  # API FastAPI (Scénario 3 retenu)
 │   ├── main.py                           # /health, /info, /predict
 │   ├── schemas.py                        # validation Pydantic stricte
@@ -31,6 +33,9 @@
 │   └── bank-additional-full.csv          # dataset fourni (41 188 lignes, séparateur `;`)
 ├── .github/workflows/ci.yml              # tests -> build Docker (bloquant si tests rouges)
 ├── Dockerfile / .dockerignore / requirements-api.txt
+├── docker-compose.yml                    # stack de suivi : API + Prometheus + Grafana (§9)
+├── prometheus/prometheus.yml             # scrape config (cible api:8000/metrics)
+├── grafana/provisioning/                 # datasource + dashboard custom provisionnés (jamais à la main dans l'UI)
 ├── cas_usage_certif/                     # canevas vierge + feuille de route — référence, non modifié
 ├── datasheet.md                          # documentation du dataset (format Gebru et al.)
 ├── experiments.md                        # traçabilité des runs (convention M1-B1/M4-B1)
@@ -73,6 +78,15 @@ docker run -d -p 8000:8000 bank-marketing-api:v1.0.0
 curl http://localhost:8000/health
 ```
 
+## 🚀 Démarrage — suivi en production (§9)
+
+```bash
+docker compose up -d --build
+# api        -> http://localhost:8000  (health, /metrics exposé pour Prometheus)
+# prometheus -> http://localhost:9090
+# grafana    -> http://localhost:3001  (admin/admin) — dashboard "Bank Marketing API" déjà provisionné
+```
+
 ---
 
 ## 🗺️ Avancement (phases, cf. feuille de route dans `cas_usage_certif/`)
@@ -87,7 +101,7 @@ curl http://localhost:8000/health
 | 6. Arbitrer (§6-7) | ✅ |
 | Analyse éthique et réglementaire (RGPD, AI Act, biais) | ✅ |
 | 6bis. Exposer & fiabiliser — API (§8) | ✅ |
-| 7. Surveiller (§9) | 🔒 pas avant M6 |
+| 7. Surveiller (§9) | ✅ |
 | 8. Architecturer (§8.4 + dossier) | 🔒 pas avant M7-M8 |
 
 ---

@@ -11,3 +11,5 @@ joblib
 loguru
 httpx
 pytest
+prometheus-fastapi-instrumentator
+prometheus-client
