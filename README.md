@@ -42,6 +42,7 @@
 ├── cas_usage_certif/                     # canevas vierge + feuille de route — référence, non modifié
 ├── datasheet.md                          # documentation du dataset (format Gebru et al.)
 ├── experiments.md                        # traçabilité des runs (convention M1-B1/M4-B1)
+├── dossier_architecture.md               # §8 : 5 arbitrages, archi cible, on-premise vs cloud, acteurs, coûts (M7-M8)
 ├── requirements.txt
 └── README.md
 ```
@@ -122,7 +123,7 @@ config CORS de l'API (`app/main.py`). Ouvrir `demo/index.html` directement
 | Analyse éthique et réglementaire (RGPD, AI Act, biais) | ✅ |
 | 6bis. Exposer & fiabiliser — API (§8) | ✅ |
 | 7. Surveiller (§9) | ✅ |
-| 8. Architecturer (§8.4 + dossier) | 🔒 pas avant M7-M8 |
+| 8. Architecturer (§8.4 + dossier) | ✅ |
 
 ---
 
