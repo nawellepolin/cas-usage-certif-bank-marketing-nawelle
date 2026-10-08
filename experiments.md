@@ -6,7 +6,7 @@
 
 ## Benchmark principal — 4 scénarios × 2 modèles (validation croisée)
 
-- **Date** : 2026-10-05
+- **Date** : 2026-09-05
 - **Dataset** : `data/bank-additional-full.csv` (sha256 `74adfc57...` — cf. notebook §0.5), n=41 188 (41 176 après dédoublonnage)
 - **Split** : `test_size=0.2`, `stratify=y`, `random_state=42` → train 32 940 / test 8 236
 - **Validation croisée** : `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)`
@@ -32,7 +32,7 @@
 
 ## Hyperparamètres — Random Forest (scenario_1, exploration légère)
 
-- **Date** : 2026-10-05
+- **Date** : 2026-09-05
 - Comparaison 3 configurations, CV identique au benchmark principal :
 
 | n_estimators | max_depth | F1 (CV) | ROC-AUC (CV) |
@@ -45,7 +45,7 @@
 
 ## Évaluation finale — test set scellé (une seule mesure par scénario)
 
-- **Date** : 2026-10-05
+- **Date** : 2026-09-05
 - **Test set** : 8 236 lignes, jamais utilisées pour le choix de modèle/scénario (utilisées une seule fois ici)
 
 | Scénario | Modèle | F1 (test) | Rappel | Précision | ROC-AUC |
@@ -55,10 +55,10 @@
 | scenario_3 | LogReg | 0.464 | 0.644 | 0.363 | 0.801 |
 | scenario_4 | Random Forest | 0.500 | 0.593 | 0.433 | 0.792 |
 
-**Baseline (`DummyClassifier`, prédit toujours "no")** : accuracy 0.887, F1 (classe yes) 0.000 — tous les modèles ci-dessus battent largement ce plancher.
+**Baseline (`DummyClassifier`, prédit toujours "no", ajoutée le 2026-09-19)** : accuracy 0.887, F1 (classe yes) 0.000 — tous les modèles ci-dessus battent largement ce plancher.
 
 **Verdict final** : **Scénario 3 + régression logistique** retenu pour la recommandation au client (cf. notebook §6.2) — quasi même performance que le Scénario 2 (coût de la fuite déjà payé), sans variables sensibles, le plus rapide (1.1 ms/prédiction) et le plus explicable.
 
-## Bug corrigé pendant cette session
+## Bug corrigé (2026-09-05)
 
 Les modèles du dict `MODELS` étaient réutilisés tels quels (même instance Python) entre plusieurs scénarios partageant le même type de modèle (ex. Random Forest pour scenario_1 et scenario_4), ce qui écrasait l'état entraîné du premier par le second lors du stockage dans `fitted_pipelines`. Corrigé avec `sklearn.base.clone()` — chaque scénario obtient désormais sa propre instance de modèle. Les métriques déjà publiées restaient correctes (la prédiction avait lieu juste après l'entraînement, avant l'écrasement) ; seule la réutilisation ultérieure du pipeline stocké était affectée.
