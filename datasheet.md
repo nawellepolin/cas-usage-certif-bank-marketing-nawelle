@@ -1,7 +1,7 @@
 # Datasheet — bank-additional-full.csv
 
 > Format Gebru et al., *"Datasheets for Datasets"* (2018) — 7 sections.
-> Auteur : Nawelle Polin · Version 1.0.0 · 2026-09-19
+> Auteur : Nawelle Polin · Version 1.0.0 · 2026-09-13
 
 ---
 
