@@ -36,6 +36,9 @@
 ├── docker-compose.yml                    # stack de suivi : API + Prometheus + Grafana (§9)
 ├── prometheus/prometheus.yml             # scrape config (cible api:8000/metrics)
 ├── grafana/provisioning/                 # datasource + dashboard custom provisionnés (jamais à la main dans l'UI)
+├── demo/                                  # page de démo statique (hors livrable certif) — teste /predict depuis un navigateur
+│   ├── index.html
+│   └── test_sample.json                  # 200 lignes réelles du jeu de TEST (jamais entraînement), avec vraie étiquette
 ├── cas_usage_certif/                     # canevas vierge + feuille de route — référence, non modifié
 ├── datasheet.md                          # documentation du dataset (format Gebru et al.)
 ├── experiments.md                        # traçabilité des runs (convention M1-B1/M4-B1)
@@ -86,6 +89,23 @@ docker compose up -d --build
 # prometheus -> http://localhost:9090
 # grafana    -> http://localhost:3001  (admin/admin) — dashboard "Bank Marketing API" déjà provisionné
 ```
+
+## 🚀 Démarrage — démo visuelle (optionnel, hors livrable)
+
+Petite page HTML/JS statique pour tester l'API sans Swagger — formulaire,
+remplissage aléatoire, et comparaison prédiction vs vraie étiquette sur une
+ligne réelle du jeu de test.
+
+```bash
+# L'API doit tourner (en local ou via docker compose, cf. ci-dessus)
+cd demo && python3 -m http.server 3000
+# -> http://localhost:3000
+```
+
+⚠️ **Le port 3000 est obligatoire** — c'est la seule origine autorisée par la
+config CORS de l'API (`app/main.py`). Ouvrir `demo/index.html` directement
+(`file://`) ou le servir sur un autre port bloque les appels à `/predict`
+(erreur CORS silencieuse, la page affiche juste "API non joignable").
 
 ---
 

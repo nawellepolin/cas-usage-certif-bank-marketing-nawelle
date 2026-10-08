@@ -39,6 +39,14 @@ def test_predict_out_of_range_returns_422(client: TestClient, valid_payload: dic
     assert response.status_code == 422
 
 
+def test_predict_rejects_unknown_field(client: TestClient, valid_payload: dict) -> None:
+    """extra='forbid' : un champ non attendu (ex: une variable sensible) doit être
+    rejeté, jamais ignoré silencieusement (cf. Scénario 3 = sans variables sensibles)."""
+    invalid = {**valid_payload, "age": 45}
+    response = client.post("/predict", json=invalid)
+    assert response.status_code == 422
+
+
 def test_predict_is_deterministic(client: TestClient, valid_payload: dict) -> None:
     """Même entrée -> même sortie, à chaque appel."""
     r1 = client.post("/predict", json=valid_payload).json()
@@ -61,3 +69,18 @@ def test_request_id_header_present(client: TestClient) -> None:
     """Le middleware ajoute X-Request-ID à toutes les réponses, même /health."""
     response = client.get("/health")
     assert "x-request-id" in response.headers
+
+
+def test_request_id_header_echoes_valid_client_uuid(client: TestClient) -> None:
+    """Un X-Request-ID client valide (UUID) est repris tel quel, pour la corrélation
+    de bout en bout côté appelant."""
+    client_id = "11111111-1111-1111-1111-111111111111"
+    response = client.get("/health", headers={"X-Request-ID": client_id})
+    assert response.headers["x-request-id"] == client_id
+
+
+def test_request_id_header_ignores_malformed_client_value(client: TestClient) -> None:
+    """Un X-Request-ID client malformé (pas un UUID) est remplacé par un id généré
+    côté serveur — jamais réutilisé tel quel (cf. app/middleware.py::_is_valid_uuid)."""
+    response = client.get("/health", headers={"X-Request-ID": "not-a-uuid"})
+    assert response.headers["x-request-id"] != "not-a-uuid"

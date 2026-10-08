@@ -1,7 +1,10 @@
 # Dockerfile — Bank Marketing Scoring API (Scénario 3)
 # Patron validé en M1-B2 : image slim, user non-root, layers ordonnées, healthcheck.
 
-FROM python:3.11-slim
+FROM python:3.12-slim
+# Aligné sur l'environnement d'entraînement (cf. models/bank_marketing_scenario3.json
+# -> python_version "3.12.14") : le pipeline joblib doit être désérialisé avec une
+# version de Python/scikit-learn cohérente avec celle utilisée pour le persister.
 
 # User non-root
 RUN useradd --create-home --shell /bin/bash --uid 1000 appuser

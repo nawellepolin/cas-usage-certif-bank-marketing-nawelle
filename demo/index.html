@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bank Marketing — Démo de scoring</title>
+    <style>
+      :root {
+        --bg: #f5f6f8;
+        --card: #ffffff;
+        --border: #dde1e6;
+        --text: #1a1d23;
+        --muted: #6b7280;
+        --accent: #2563eb;
+        --yes: #16a34a;
+        --no: #dc2626;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 24px 16px 60px;
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.4rem;
+        margin-bottom: 4px;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        font-size: 1rem;
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 18px;
+      }
+      @media (max-width: 560px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      label {
+        display: block;
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background: #fff;
+        color: var(--text);
+      }
+      input:focus,
+      select:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: -1px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      button {
+        border: none;
+        border-radius: 6px;
+        padding: 10px 18px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #1d4ed8;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      .btn-ghost:hover {
+        background: #eef2ff;
+      }
+      #result {
+        display: none;
+      }
+      #result.show {
+        display: block;
+      }
+      .result-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .badge {
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #fff;
+      }
+      .badge.yes {
+        background: var(--yes);
+      }
+      .badge.no {
+        background: var(--no);
+      }
+      .proba {
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.78rem;
+        margin-top: 10px;
+        line-height: 1.5;
+      }
+      .error {
+        color: var(--no);
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 0.78rem;
+        margin-top: 2px;
+      }
+      .api-status {
+        font-size: 0.8rem;
+        margin-bottom: 18px;
+      }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+      .dot.ok {
+        background: var(--yes);
+      }
+      .dot.down {
+        background: var(--no);
+      }
+      .true-label-banner {
+        display: none;
+        margin-top: 12px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+      }
+      .true-label-banner.show {
+        display: block;
+      }
+      .match-ok {
+        color: var(--yes);
+        font-weight: 700;
+      }
+      .match-bad {
+        color: var(--no);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Bank Marketing — Démo de scoring</h1>
+      <div class="subtitle">
+        Outil de démonstration (pas un livrable du cas d'usage) — appelle l'API
+        réelle (<code>POST /predict</code>) sur
+        <code>http://localhost:8000</code>.
+      </div>
+
+      <div class="api-status" id="apiStatus">Vérification de l'API…</div>
+
+      <form class="card" id="predictForm">
+        <h2>Profil du contact envisagé</h2>
+        <div class="grid">
+          <div>
+            <label for="contact">Canal de contact</label>
+            <select id="contact" name="contact">
+              <option value="cellular">cellular</option>
+              <option value="telephone">telephone</option>
+            </select>
+          </div>
+          <div>
+            <label for="month">Mois envisagé</label>
+            <select id="month" name="month">
+              <option>mar</option>
+              <option>apr</option>
+              <option selected>may</option>
+              <option>jun</option>
+              <option>jul</option>
+              <option>aug</option>
+              <option>sep</option>
+              <option>oct</option>
+              <option>nov</option>
+              <option>dec</option>
+            </select>
+          </div>
+          <div>
+            <label for="day_of_week">Jour de la semaine</label>
+            <select id="day_of_week" name="day_of_week">
+              <option selected>mon</option>
+              <option>tue</option>
+              <option>wed</option>
+              <option>thu</option>
+              <option>fri</option>
+            </select>
+          </div>
+          <div>
+            <label for="poutcome">Résultat campagne précédente</label>
+            <select id="poutcome" name="poutcome">
+              <option selected>nonexistent</option>
+              <option>failure</option>
+              <option>success</option>
+            </select>
+          </div>
+          <div>
+            <label for="campaign">Contacts effectués cette campagne</label>
+            <input
+              type="number"
+              id="campaign"
+              name="campaign"
+              value="1"
+              min="1"
+              max="60"
+              step="1"
+            />
+          </div>
+          <div>
+            <label for="previous">Contacts avant cette campagne</label>
+            <input
+              type="number"
+              id="previous"
+              name="previous"
+              value="0"
+              min="0"
+              max="10"
+              step="1"
+            />
+          </div>
+          <div>
+            <label for="pdays"
+              >Jours depuis dernier contact (999 = jamais)</label
+            >
+            <input
+              type="number"
+              id="pdays"
+              name="pdays"
+              value="999"
+              min="0"
+              max="999"
+              step="1"
+            />
+          </div>
+        </div>
+
+        <h2 style="margin-top: 20px">Contexte macro-économique du moment</h2>
+        <div class="grid">
+          <div>
+            <label for="emp_var_rate">Taux de variation de l'emploi</label>
+            <input
+              type="number"
+              id="emp_var_rate"
+              name="emp_var_rate"
+              value="1.1"
+              min="-4.0"
+              max="2.0"
+              step="0.1"
+            />
+          </div>
+          <div>
+            <label for="cons_price_idx"
+              >Indice des prix à la consommation</label
+            >
+            <input
+              type="number"
+              id="cons_price_idx"
+              name="cons_price_idx"
+              value="93.994"
+              min="92.0"
+              max="95.0"
+              step="0.001"
+            />
+          </div>
+          <div>
+            <label for="cons_conf_idx"
+              >Indice de confiance des consommateurs</label
+            >
+            <input
+              type="number"
+              id="cons_conf_idx"
+              name="cons_conf_idx"
+              value="-36.4"
+              min="-51.0"
+              max="-26.0"
+              step="0.1"
+            />
+          </div>
+          <div>
+            <label for="euribor3m">Euribor 3 mois</label>
+            <input
+              type="number"
+              id="euribor3m"
+              name="euribor3m"
+              value="4.857"
+              min="0.0"
+              max="6.0"
+              step="0.001"
+            />
+          </div>
+          <div>
+            <label for="nr_employed">Nombre de salariés (indicateur)</label>
+            <input
+              type="number"
+              id="nr_employed"
+              name="nr_employed"
+              value="5191.0"
+              min="4900.0"
+              max="5300.0"
+              step="0.1"
+            />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary">Prédire</button>
+          <button type="button" class="btn-ghost" id="randomAny">
+            🎲 Remplir aléatoirement
+          </button>
+          <button type="button" class="btn-ghost" id="randomYes">
+            🎲 Aléatoire — forte chance de "oui"
+          </button>
+          <button type="button" class="btn-ghost" id="randomNo">
+            🎲 Aléatoire — forte chance de "non"
+          </button>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-ghost" id="randomTestRow">
+            📋 Ligne réelle du jeu de test
+          </button>
+        </div>
+        <div id="trueLabelBanner" class="true-label-banner"></div>
+      </form>
+
+      <div class="card" id="result"></div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+      const form = document.getElementById("predictForm");
+      const resultBox = document.getElementById("result");
+      const apiStatus = document.getElementById("apiStatus");
+
+      function fillForm(data) {
+        for (const [key, value] of Object.entries(data)) {
+          const el = form.elements[key];
+          if (el) el.value = value;
+        }
+      }
+
+      // --- Ligne réelle du jeu de test --------------------------------------------
+      // test_sample.json = 200 lignes réelles tirées du VRAI test set (random_state=42,
+      // même split que le notebook §4/§5 — jamais vues à l'entraînement), avec leur
+      // vraie étiquette. Permet de comparer "prédit" vs "réellement arrivé".
+      const trueLabelBanner = document.getElementById("trueLabelBanner");
+      let currentTrueLabel = null;
+      let testSample = null;
+
+      async function loadTestSample() {
+        try {
+          const res = await fetch("test_sample.json");
+          testSample = await res.json();
+        } catch {
+          testSample = null;
+        }
+      }
+      loadTestSample();
+
+      function clearTrueLabel() {
+        currentTrueLabel = null;
+        trueLabelBanner.className = "true-label-banner";
+        trueLabelBanner.innerHTML = "";
+      }
+
+      document.getElementById("randomTestRow").addEventListener("click", () => {
+        if (!testSample || testSample.length === 0) {
+          trueLabelBanner.className = "true-label-banner show";
+          trueLabelBanner.innerHTML =
+            "test_sample.json indisponible — vérifie qu'il est bien servi à côté de index.html.";
+          return;
+        }
+        const row = pick(testSample);
+        const { true_label, ...fields } = row;
+        fillForm(fields);
+        currentTrueLabel = true_label;
+        trueLabelBanner.className = "true-label-banner show";
+        trueLabelBanner.innerHTML = `Ligne réelle du jeu de test — vraie étiquette : <strong>${true_label === "yes" ? "A SOUSCRIT" : "N'A PAS SOUSCRIT"}</strong>.`;
+      });
+
+      // Combinaisons macro-éco réelles du dataset (indicateurs trimestriels, pas inventés),
+      // vérifiées empiriquement contre l'API réelle avant d'être codées en dur ici.
+      const CONTEXTS_YES = [
+        // poutcome="success" (déjà converti avant) + contexte de crise (2009) -> proba observée 0.96-0.97
+        {
+          month: "mar",
+          emp_var_rate: -1.8,
+          cons_price_idx: 92.843,
+          cons_conf_idx: -50.0,
+          euribor3m: 1.811,
+          nr_employed: 5099.1,
+        },
+        {
+          month: "sep",
+          emp_var_rate: -3.4,
+          cons_price_idx: 92.379,
+          cons_conf_idx: -29.8,
+          euribor3m: 0.813,
+          nr_employed: 5017.5,
+        },
+        {
+          month: "oct",
+          emp_var_rate: -3.4,
+          cons_price_idx: 92.431,
+          cons_conf_idx: -26.9,
+          euribor3m: 0.838,
+          nr_employed: 5017.5,
+        },
+        {
+          month: "dec",
+          emp_var_rate: -3.0,
+          cons_price_idx: 92.713,
+          cons_conf_idx: -33.0,
+          euribor3m: 0.707,
+          nr_employed: 5023.5,
+        },
+      ];
+      const CONTEXTS_NO = [
+        // poutcome="nonexistent" (jamais recontacté) + contexte d'expansion (2008) -> proba observée 0.18-0.29
+        {
+          month: "may",
+          emp_var_rate: 1.1,
+          cons_price_idx: 93.994,
+          cons_conf_idx: -36.4,
+          euribor3m: 4.857,
+          nr_employed: 5191.0,
+        },
+        {
+          month: "jul",
+          emp_var_rate: 1.4,
+          cons_price_idx: 93.918,
+          cons_conf_idx: -42.7,
+          euribor3m: 4.968,
+          nr_employed: 5228.1,
+        },
+        {
+          month: "aug",
+          emp_var_rate: 1.4,
+          cons_price_idx: 93.444,
+          cons_conf_idx: -36.1,
+          euribor3m: 4.964,
+          nr_employed: 5228.1,
+        },
+        {
+          month: "jun",
+          emp_var_rate: 1.4,
+          cons_price_idx: 94.465,
+          cons_conf_idx: -41.8,
+          euribor3m: 4.864,
+          nr_employed: 5228.1,
+        },
+      ];
+      const ALL_MONTHS = [
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+      ];
+      const ALL_DAYS = ["mon", "tue", "wed", "thu", "fri"];
+
+      function pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      function randInt(min, max) {
+        return Math.floor(min + Math.random() * (max - min + 1));
+      }
+      function randFloat(min, max, decimals = 1) {
+        const v = min + Math.random() * (max - min);
+        return Number(v.toFixed(decimals));
+      }
+
+      // Remplissage totalement aléatoire, borné aux limites acceptées par l'API (pas de biais).
+      function fillRandomAny() {
+        clearTrueLabel();
+        const poutcome = pick(["failure", "nonexistent", "success"]);
+        const hadPrior = poutcome !== "nonexistent";
+        fillForm({
+          contact: pick(["cellular", "telephone"]),
+          month: pick(ALL_MONTHS),
+          day_of_week: pick(ALL_DAYS),
+          poutcome,
+          campaign: randInt(1, 10),
+          previous: hadPrior ? randInt(1, 5) : 0,
+          pdays: hadPrior ? randInt(1, 25) : 999,
+          emp_var_rate: randFloat(-4.0, 2.0, 1),
+          cons_price_idx: randFloat(92.0, 95.0, 3),
+          cons_conf_idx: randFloat(-51.0, -26.0, 1),
+          euribor3m: randFloat(0.0, 6.0, 3),
+          nr_employed: randFloat(4900.0, 5300.0, 1),
+        });
+      }
+
+      // Remplissage aléatoire biaisé : profil typique "a déjà dit oui" en contexte de crise
+      // (= la combinaison la plus fortement associée à "oui" dans nos données, cf. §7/§9 du notebook).
+      function fillRandomYes() {
+        clearTrueLabel();
+        const ctx = pick(CONTEXTS_YES);
+        fillForm({
+          contact: "cellular",
+          month: ctx.month,
+          day_of_week: pick(ALL_DAYS),
+          poutcome: "success",
+          campaign: randInt(1, 3),
+          previous: randInt(1, 4),
+          pdays: randInt(1, 15),
+          emp_var_rate: ctx.emp_var_rate,
+          cons_price_idx: ctx.cons_price_idx,
+          cons_conf_idx: ctx.cons_conf_idx,
+          euribor3m: ctx.euribor3m,
+          nr_employed: ctx.nr_employed,
+        });
+      }
+
+      // Remplissage aléatoire biaisé : profil typique "jamais recontacté" en contexte d'expansion
+      // économique (= la combinaison la plus fortement associée à "non" dans nos données).
+      function fillRandomNo() {
+        clearTrueLabel();
+        const ctx = pick(CONTEXTS_NO);
+        fillForm({
+          contact: "telephone",
+          month: ctx.month,
+          day_of_week: pick(ALL_DAYS),
+          poutcome: "nonexistent",
+          campaign: randInt(1, 10),
+          previous: 0,
+          pdays: 999,
+          emp_var_rate: ctx.emp_var_rate,
+          cons_price_idx: ctx.cons_price_idx,
+          cons_conf_idx: ctx.cons_conf_idx,
+          euribor3m: ctx.euribor3m,
+          nr_employed: ctx.nr_employed,
+        });
+      }
+
+      document
+        .getElementById("randomAny")
+        .addEventListener("click", fillRandomAny);
+      document
+        .getElementById("randomYes")
+        .addEventListener("click", fillRandomYes);
+      document
+        .getElementById("randomNo")
+        .addEventListener("click", fillRandomNo);
+
+      async function checkHealth() {
+        try {
+          const res = await fetch(`${API_BASE}/health`);
+          if (res.ok) {
+            apiStatus.innerHTML =
+              '<span class="dot ok"></span>API disponible (' + API_BASE + ")";
+          } else {
+            throw new Error();
+          }
+        } catch {
+          apiStatus.innerHTML =
+            '<span class="dot down"></span>API non joignable — lance <code>docker compose up -d</code> ou <code>uvicorn app.main:app</code>';
+        }
+      }
+      checkHealth();
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const payload = {
+          contact: fd.get("contact"),
+          month: fd.get("month"),
+          day_of_week: fd.get("day_of_week"),
+          campaign: parseInt(fd.get("campaign"), 10),
+          pdays: parseInt(fd.get("pdays"), 10),
+          previous: parseInt(fd.get("previous"), 10),
+          poutcome: fd.get("poutcome"),
+          emp_var_rate: parseFloat(fd.get("emp_var_rate")),
+          cons_price_idx: parseFloat(fd.get("cons_price_idx")),
+          cons_conf_idx: parseFloat(fd.get("cons_conf_idx")),
+          euribor3m: parseFloat(fd.get("euribor3m")),
+          nr_employed: parseFloat(fd.get("nr_employed")),
+        };
+
+        resultBox.className = "card show";
+        resultBox.innerHTML = '<p class="hint">Appel de l\'API en cours…</p>';
+
+        try {
+          const res = await fetch(`${API_BASE}/predict`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+
+          if (!res.ok) {
+            resultBox.innerHTML = `<h2>Erreur ${res.status}</h2><div class="error">${JSON.stringify(data.detail, null, 2)}</div>`;
+            return;
+          }
+
+          const pct = (data.probability * 100).toFixed(1);
+          const isYes = data.prediction === "yes";
+
+          let comparisonHtml = "";
+          if (currentTrueLabel !== null) {
+            const matched = currentTrueLabel === data.prediction;
+            comparisonHtml = `<div class="meta">${
+              matched
+                ? '<span class="match-ok">✅ Correspond à ce qui est réellement arrivé</span>'
+                : '<span class="match-bad">❌ Ne correspond PAS à ce qui est réellement arrivé</span>'
+            } (vraie étiquette : ${currentTrueLabel === "yes" ? "a souscrit" : "n'a pas souscrit"})</div>`;
+          }
+
+          resultBox.innerHTML = `
+      <div class="result-head">
+        <span class="badge ${isYes ? "yes" : "no"}">${isYes ? "SOUSCRIRAIT" : "NE SOUSCRIRAIT PAS"}</span>
+        <span class="proba">${pct}%</span>
+      </div>
+      ${comparisonHtml}
+      <div class="meta">
+        probabilité de souscription · seuil de décision = 50 %<br>
+        modèle : ${data.model_version} · request_id : ${data.request_id}
+      </div>`;
+        } catch (err) {
+          resultBox.innerHTML = `<h2>Erreur réseau</h2><div class="error">${err.message}\n\nVérifie que l'API tourne sur ${API_BASE} et que CORS autorise cette origine (http://localhost:3000).</div>`;
+        }
+      });
+    </script>
+  </body>
+</html>

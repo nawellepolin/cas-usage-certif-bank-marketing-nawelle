@@ -153,7 +153,13 @@ async def predict(
         X = add_engineered_features(pd.DataFrame([raw]))
         proba = float(app.state.model.predict_proba(X)[0, 1])
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Échec de la prédiction : {exc}") from exc
+        # Détail complet dans les logs serveur uniquement — jamais dans la réponse HTTP
+        # (les erreurs pandas/sklearn exposent des noms de colonnes internes).
+        logger.bind(request_id=request_id).exception("Échec de la prédiction")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Échec de la prédiction (request_id={request_id})",
+        ) from exc
 
     predicted_class = "yes" if proba >= 0.5 else "no"
     PREDICTIONS.labels(predicted_class=predicted_class).inc()

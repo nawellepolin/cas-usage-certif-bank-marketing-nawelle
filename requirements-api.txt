@@ -3,9 +3,15 @@
 fastapi
 uvicorn
 pydantic
-joblib
+joblib==1.6.0
 loguru
-pandas
-scikit-learn
+pandas==3.0.6
+numpy==2.5.3
+# scikit-learn et numpy épinglés strictement : doivent matcher les versions utilisées
+# pour entraîner/persister le pipeline (cf. models/bank_marketing_scenario3.json ->
+# sklearn_version), sinon joblib.load() peut échouer ou charger un pipeline aux
+# prédictions différentes sans avertissement bloquant — numpy en particulier, via
+# des incompatibilités ABI/dtype entre versions majeures.
+scikit-learn==1.9.1
 prometheus-fastapi-instrumentator
 prometheus-client

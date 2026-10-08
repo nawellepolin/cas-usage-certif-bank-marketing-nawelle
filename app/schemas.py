@@ -37,6 +37,7 @@ class ContactAttempt(BaseModel):
     nr_employed: float = Field(..., ge=4900.0, le=5300.0, description="Nombre de salariés (indicateur trimestriel)")
 
     model_config = {
+        "extra": "forbid",  # un champ non attendu (ex: age, job) doit être rejeté, pas ignoré en silence
         "json_schema_extra": {
             "example": {
                 "contact": "cellular",

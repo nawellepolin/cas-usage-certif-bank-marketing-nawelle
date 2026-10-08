@@ -16,10 +16,31 @@ from scipy.stats import chi2_contingency, ks_2samp
 def population_stability_index(reference: pd.Series, current: pd.Series, n_bins: int = 10, eps: float = 1e-6) -> float:
     """PSI entre deux distributions numériques. Bins issus de la RÉFÉRENCE
     uniquement (sinon le PSI n'est plus comparable)."""
-    edges = np.unique(np.quantile(reference.dropna(), np.linspace(0, 1, n_bins + 1)))
-    edges[0], edges[-1] = -np.inf, np.inf
-    p_ref = np.histogram(reference.dropna(), edges)[0] / len(reference.dropna())
-    p_cur = np.histogram(current.dropna(), edges)[0] / len(current.dropna())
+    ref = reference.dropna()
+    cur = current.dropna()
+    unique_ref_vals = np.unique(ref)
+
+    if len(unique_ref_vals) < n_bins:
+        # Variable à faible cardinalité (binaire comme has_prior_contact, ou
+        # discrète à peu de valeurs) : le binning par quantiles peut collapser
+        # des valeurs distinctes dans le même bin — jusqu'à perdre TOUTE capacité
+        # de discrimination (constaté : une variable binaire à 2 valeurs produit
+        # edges=[v0,v1], et edges[0],edges[-1]=-inf,inf écrase les deux bords en
+        # un seul bin -> PSI=0.0 silencieux même en cas de dérive totale). On bin
+        # alors par VALEUR EXACTE plutôt que par quantile — catégories = union
+        # des valeurs vues côté référence ET côté courant (une valeur nouvelle
+        # côté courant doit compter comme un écart, pas être ignorée).
+        categories = np.unique(np.concatenate([unique_ref_vals, np.unique(cur)]))
+        ref_counts = ref.value_counts(normalize=True)
+        cur_counts = cur.value_counts(normalize=True)
+        p_ref = np.array([ref_counts.get(v, 0.0) for v in categories])
+        p_cur = np.array([cur_counts.get(v, 0.0) for v in categories])
+    else:
+        edges = np.unique(np.quantile(ref, np.linspace(0, 1, n_bins + 1)))
+        edges[0], edges[-1] = -np.inf, np.inf
+        p_ref = np.histogram(ref, edges)[0] / len(ref)
+        p_cur = np.histogram(cur, edges)[0] / len(cur)
+
     # Lissage anti-zéro puis renormalisation (sinon ln(0) et proportions qui ne somment plus à 1)
     p_ref, p_cur = p_ref + eps, p_cur + eps
     p_ref, p_cur = p_ref / p_ref.sum(), p_cur / p_cur.sum()
