@@ -17,6 +17,7 @@
 │   └── journal-de-bord.ipynb             # démarche, choix, difficultés — séance par séance
 ├── src/
 │   ├── preprocess.py                     # pipeline de préparation, 4 scénarios — réutilisé par le notebook ET l'API
+│   ├── train.py                          # entraînement autonome (Scénario 3) — réutilisé par la CI (`retrain-check`)
 │   ├── drift_detection.py                # PSI/KS/Chi² (§9 — convention M6-B1)
 │   └── calibration.py                    # reliability diagram / ECE (§9)
 ├── app/                                  # API FastAPI (Scénario 3 retenu)
@@ -31,7 +32,7 @@
 │   └── bank_marketing_scenario3.json     # métadonnées (version, métriques, hash dataset)
 ├── data/
 │   └── bank-additional-full.csv          # dataset fourni (41 188 lignes, séparateur `;`)
-├── .github/workflows/ci.yml              # tests -> build Docker (bloquant si tests rouges)
+├── .github/workflows/ci.yml              # tests -> build Docker + réentraînement de contrôle (bloquants si rouges)
 ├── Dockerfile / .dockerignore / requirements-api.txt
 ├── docker-compose.yml                    # stack de suivi : API + Prometheus + Grafana (§9)
 ├── prometheus/prometheus.yml             # scrape config (cible api:8000/metrics)
@@ -81,6 +82,20 @@ docker build -t bank-marketing-api:v1.0.0 .
 docker run -d -p 8000:8000 bank-marketing-api:v1.0.0
 curl http://localhost:8000/health
 ```
+
+## 🚀 Réentraînement du modèle
+
+```bash
+python -m src.train                 # ré-entraîne et écrase models/*.joblib + .json (geste délibéré)
+python -m src.train --check-only    # ré-entraîne, vérifie le F1 contre un seuil minimal, n'écrit rien
+```
+
+⚠️ Le notebook (§8.1) ne ré-écrit **jamais** l'artefact versionné quand il tourne
+(`Run All` ne doit pas changer silencieusement ce qui est servi) — il vérifie
+seulement, à l'exécution, que `models/*.json` est cohérent avec ses propres
+résultats. Seul `src/train.py` persiste réellement une nouvelle version, et
+c'est ce même script que la CI (`retrain-check`) exécute en `--check-only` à
+chaque push, pour garantir que le pipeline se ré-entraîne sans erreur.
 
 ## 🚀 Démarrage — suivi en production (§9)
 

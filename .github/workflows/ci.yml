@@ -17,6 +17,19 @@ jobs:
       - run: pip install -r requirements-api.txt pytest httpx
       - run: pytest -v tests/
 
+  retrain-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-api.txt
+      # Vérifie que le pipeline se ré-entraîne de zéro sans erreur et sans régression
+      # (seuil MIN_F1 dans src/train.py) — ne réécrit jamais models/*.joblib en CI,
+      # c'est un geste délibéré (`python src/train.py`), pas un effet de bord d'un push.
+      - run: python -m src.train --check-only
+
   build:
     needs: test
     if: github.event_name == 'push'
