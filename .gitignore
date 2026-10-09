@@ -49,3 +49,8 @@ consigne/
 
 # Notes personnelles (préparation PPT) — jamais poussées
 NOTES-PERSO.md
+PPT-EBAUCHE.md
+
+# Notebook fusionné (notebook + journal de bord) pour le rendu certif — artefact
+# de soumission généré à partir des sources versionnées, pas du code à garder.
+notebooks/*certif*.ipynb
