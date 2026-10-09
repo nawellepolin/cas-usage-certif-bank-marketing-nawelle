@@ -31,7 +31,7 @@ jobs:
       - run: python -m src.train --check-only
 
   build:
-    needs: test
+    needs: [test, retrain-check]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
